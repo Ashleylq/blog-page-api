@@ -28,6 +28,8 @@ model comment {
   commented_at DateTime @default(now())
   user user @relation(fields: [userid], references: [id])
   userid Int
+  postid Int
+  post post @relation(fields: [postid], references: [id])
 }
 
 model post {
@@ -37,6 +39,7 @@ model post {
   posted_at DateTime @default(now())
   user user @relation(fields: [userid], references: [id])
   userid Int
+  comments comment[]
 }
 
 enum role {
