@@ -1,6 +1,7 @@
 import { Router } from "express";
 import prisma from "../lib/prisma.js";
 import passport from "passport";
+import commentsRoute from "./commentsRoute.js"
 
 const postRouter = Router();
 
@@ -85,5 +86,7 @@ postRouter.delete('/:id', passport.authenticate('jwt', {session : false}),
         res.send("Successfully deleted post");
     }
 )
+
+postRouter.use('/:postid/comments', commentsRoute);
 
 export default postRouter;
