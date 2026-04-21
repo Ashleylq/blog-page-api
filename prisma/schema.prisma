@@ -13,33 +13,39 @@ datasource db {
 }
 
 model user {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  username String @unique
+  id       Int       @id @default(autoincrement())
+  email    String    @unique
+  username String    @unique
   password String
   comments comment[]
-  posts post[]
-  role role @default(VIEWER)
+  posts    post[]
+  role     role      @default(VIEWER)
 }
 
 model comment {
-  id Int @id @default(autoincrement())
-  text String
+  id           Int      @id @default(autoincrement())
+  text         String
   commented_at DateTime @default(now())
-  user user @relation(fields: [userid], references: [id])
-  userid Int
-  postid Int
-  post post @relation(fields: [postid], references: [id])
+  user         user     @relation(fields: [userid], references: [id])
+  userid       Int
+  postid       Int
+  post         post     @relation(fields: [postid], references: [id])
 }
 
 model post {
-  id Int @id @default(autoincrement())
-  title String
-  text String
-  posted_at DateTime @default(now())
-  user user @relation(fields: [userid], references: [id])
-  userid Int
-  comments comment[]
+  id        Int       @id @default(autoincrement())
+  title     String
+  text      String
+  posted_at DateTime  @default(now())
+  user      user      @relation(fields: [userid], references: [id])
+  userid    Int
+  comments  comment[]
+}
+
+model refreshToken {
+  token     String   @unique
+  userid    Int
+  expiresAt DateTime
 }
 
 enum role {
