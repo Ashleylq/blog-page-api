@@ -28,11 +28,19 @@ function passportConfig(passport){
         secretOrKey : process.env.JWT_SECRET,
         jwtFromRequest : ExtractJwt.fromAuthHeaderAsBearerToken()
     }, async (jwt_payload, done) => {
-        if(jwt_payload){
-            return done(null, jwt_payload);
+        try {
+            const user = await prisma.user.findUnique({
+                where : {id : jwt_payload.id}
+            })
+        if(!user){
+            done(null, false);
         }
         else {
-            return done(null, false);
+            done(null, user);
+        }
+        }
+        catch(err){
+            done(err);
         }
     }))
 }
