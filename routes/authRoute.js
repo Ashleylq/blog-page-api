@@ -159,13 +159,19 @@ authRouter.post('/refresh', async (req, res) => {
         },
         where : {token : refreshToken}
     })
+    const user = await prisma.user.findUnique({
+        where : {id : dbToken.userid}
+    })
     res.cookie("refreshToken", newRefreshToken, {
         secure : false,
         httpOnly : true,
         maxAge : 1000 * 60 * 60 * 24 * 7,
         sameSite: "none"
     })
-    res.json({token : accessToken})
+    res.json({
+        accessToken : accessToken,
+        user : user
+    })
 })
 
 authRouter.post('/logout', passport.authenticate('jwt', {session : false}), async (req, res) => {
