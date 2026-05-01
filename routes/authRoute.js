@@ -73,7 +73,7 @@ authRouter.post('/signup',
             })
             res.cookie("refreshToken", refreshToken, {
                 maxAge : 1000 * 60 * 60 * 24 * 7,
-                secure : false,
+                secure : true,
                 httpOnly : true,
                 sameSite : "none"
             })
@@ -113,7 +113,7 @@ authRouter.post('/login', (req, res) => {
         })
         res.cookie("refreshToken", refreshToken, {
             maxAge : 1000 * 60 * 60 * 24 * 7,
-            secure : false,
+            secure : true,
             httpOnly : true,
             sameSite : "none"
         })
@@ -139,6 +139,9 @@ authRouter.patch('/role', passport.authenticate('jwt', {session : false}), async
 
 authRouter.post('/refresh', async (req, res) => {
     const refreshToken = req.cookies.refreshToken;
+    if(!refreshToken){
+        res.status(401).send("Refresh token does not exist")
+    }
     const dbToken = await prisma.refreshToken.findUniqueOrThrow({
         where : {token : refreshToken}
     })
@@ -163,7 +166,7 @@ authRouter.post('/refresh', async (req, res) => {
         where : {id : dbToken.userid}
     })
     res.cookie("refreshToken", newRefreshToken, {
-        secure : false,
+        secure : true,
         httpOnly : true,
         maxAge : 1000 * 60 * 60 * 24 * 7,
         sameSite: "none"
@@ -179,7 +182,7 @@ authRouter.post('/logout', passport.authenticate('jwt', {session : false}), asyn
         where : {userid : req.user.id}
     })
     res.clearCookie("refreshToken", {
-        secure : false,
+        secure : true,
         httpOnly : true,
         samesite : "none"
     })
