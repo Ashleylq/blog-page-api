@@ -56,7 +56,9 @@ authRouter.post('/signup',
             })
             const token = jwt.sign({
                 id : user.id
-            }, process.env.JWT_SECRET)
+            }, process.env.JWT_SECRET, {
+                expiresIn : '3d'
+            })
             return res.json({
                 token : token,
                 user : user
@@ -76,7 +78,9 @@ authRouter.post('/login', (req, res) => {
         }
         const token = jwt.sign({
             id : user.id
-        }, process.env.JWT_SECRET);
+        }, process.env.JWT_SECRET, {
+            expiresIn : '3d'
+        });
         return res.json({
             token : token,
             user : user
