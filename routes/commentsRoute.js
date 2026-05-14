@@ -1,31 +1,38 @@
 import { Router } from "express";
 import passport from "passport";
 import prisma from "../lib/prisma.js";
-import { ResultWithContextImpl } from "express-validator/lib/chain/context-runner-impl.js";
 
 const commentsRouter = Router({mergeParams : true});
 
 commentsRouter.post('/', passport.authenticate('jwt', {session : false}), async (req, res) => {
-    await prisma.comment.create({
+    const comment = await prisma.comment.create({
         data : {
             text : req.body.text,
             userid : req.user.id,
             postid : parseInt(req.params.postid)
+        },
+        include : {
+            user : true
         }
     })
-    res.send("Successfully created comment");
+    res.json({comment : comment});
 })
 
 commentsRouter.put('/:commentid', passport.authenticate('jwt', {session : false}),
     async (req, res, next) => {
-        const comment = await prisma.comment.findUniqueOrThrow({
-            where : {id : parseInt(req.params.commentid)}
-        })
-        if(req.user.id == comment.userid){
-            next();
+        try{
+            const comment = await prisma.comment.findUniqueOrThrow({
+                where : {id : parseInt(req.params.commentid)}
+            })
+            if(req.user.id == comment.userid){
+                next();
+            }
+            else {
+                res.status(403).json({err : "Not authorized"});
+            }
         }
-        else {
-            res.status(403).send("Not authorized");
+        catch(err){
+            res.status(404).json({err : "Not found"})
         }
     },
     async (req, res) => {
@@ -37,27 +44,32 @@ commentsRouter.put('/:commentid', passport.authenticate('jwt', {session : false}
                 id : parseInt(req.params.commentid)
             }
         })
-        res.send("Successfully edited comment")
+        res.json({success : true})
     }
 )
 
 commentsRouter.delete('/:commentid', passport.authenticate('jwt', {session : false}),
     async (req, res, next) => {
-        const comment = await prisma.comment.findUniqueOrThrow({
-            where : {id : parseInt(req.params.commentid)}
-        })
-        if(comment.userid == req.user.id){
-            next();
+        try{
+            const comment = await prisma.comment.findUniqueOrThrow({
+                where : {id : parseInt(req.params.commentid)}
+            })
+            if(comment.userid == req.user.id){
+                next();
+            }
+            else {
+                res.status(403).json({err : "Not authorized"});
+            }
         }
-        else {
-            res.status(403).send("Not authorized");
+        catch(err){
+            res.status(404).json({err : "Not found"})
         }
     },
     async (req, res) => {
         await prisma.comment.delete({
             where : {id : parseInt(req.params.commentid)}
         })
-        res.send("Successfully deleted comment");
+        res.json({success : true});
     }
 )
 

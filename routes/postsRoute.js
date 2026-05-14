@@ -7,15 +7,25 @@ const postRouter = Router();
 
 postRouter.get("/", async (req, res) => {
     const posts = await prisma.post.findMany();
-    res.json(posts);
+    res.json({posts : posts});
 })
 
 postRouter.get("/:id", passport.authenticate('jwt', {session : false}) ,async (req, res) => {
-    const post = await prisma.post.findUniqueOrThrow({
-        where : {id : parseInt(req.params.id)},
-        include : {comments : true}
-    })
-    res.json(post)
+    try{
+        const post = await prisma.post.findUniqueOrThrow({
+            where : {id : parseInt(req.params.id)},
+            include : { comments : {
+                include : {
+                    user : true
+                }
+            },
+            user : true}
+        })
+        res.json({post : post})
+    }
+    catch(err){
+        res.status(404).json({err : err});
+    }
 })
 
 postRouter.post('/', passport.authenticate('jwt', {session : false}),
@@ -24,7 +34,7 @@ postRouter.post('/', passport.authenticate('jwt', {session : false}),
             next();
         }
         else {
-            res.status(403).send("Not authorized")
+            res.status(403).json({err : "Not authorized"})
         }
     },
     async (req, res) => {
@@ -36,20 +46,25 @@ postRouter.post('/', passport.authenticate('jwt', {session : false}),
                 userid : req.user.id
             }
         })
-        res.send("Successfully created post")
+        res.json({success : true});
     }
 )
 
 postRouter.put('/:id', passport.authenticate('jwt', {session : false}),
     async (req, res, next) => {
-        const post = await prisma.post.findUniqueOrThrow({
-            where : {id : parseInt(req.params.id)}
-        })
-        if(req.user.id == post.id){
-            next();
+        try{
+            const post = await prisma.post.findUniqueOrThrow({
+                where : {id : parseInt(req.params.id)}
+            })
+            if(req.user.id == post.id){
+                next();
+            }
+            else {
+                res.status(403).json({err : "Not authorized"});
+            }
         }
-        else {
-            res.status(403).send("Not authorized");
+        catch(err){
+            res.status(404).json({err : "Not found"})
         }
     },
     async (req, res) => {
@@ -63,30 +78,45 @@ postRouter.put('/:id', passport.authenticate('jwt', {session : false}),
                 id : parseInt(req.params.id)
             }
         })
-        res.send("Successfully edited post");
+        res.json({success : true});
     }
 )
 
 postRouter.delete('/:id', passport.authenticate('jwt', {session : false}),
     async (req, res, next) => {
-        const post = await prisma.post.findUniqueOrThrow({
-            where : {id : parseInt(req.params.id)}
-        })
-        if(req.user.id = post.id){
-            next();
+        try{
+            const post = await prisma.post.findUniqueOrThrow({
+                where : {id : parseInt(req.params.id)}
+            })
+            if(req.user.id == post.id){
+                next();
+            }
+            else {
+                res.status(403).json({err : "Not authorized"});
+            }
         }
-        else {
-            res.status(403).send("Not authorized");
+        catch(err){
+            res.status(404).json({err : "Not found"})
         }
     },
     async (req, res) => {
         await prisma.post.delete({
             where : {id : parseInt(req.params.id)}
         })
-        res.send("Successfully deleted post");
+        res.json({success : true});
     }
 )
 
-postRouter.use('/:postid/comments', commentsRoute);
+postRouter.use('/:postid/comments', async (req, res, next) => {
+    const post = await prisma.post.findUnique({
+        where : {id : parseInt(req.params.postid)}
+    })
+    if(!post){
+        res.status(404).json({err : "Not found"})
+    }
+    else {
+        next();
+    }
+}, commentsRoute);
 
 export default postRouter;

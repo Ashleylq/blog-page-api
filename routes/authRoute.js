@@ -70,8 +70,7 @@ authRouter.post('/signup',
 authRouter.post('/login', (req, res) => {
     passport.authenticate('local', {session : false}, (err, user, info) => {
         if(err){
-            console.log(err)
-            return res.status(500).send(err);
+            return res.status(500).json(err);
         }
         else if(!user){
             return res.status(401).json(info);
