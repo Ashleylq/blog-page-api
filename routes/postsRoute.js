@@ -56,7 +56,7 @@ postRouter.put('/:id', passport.authenticate('jwt', {session : false}),
             const post = await prisma.post.findUniqueOrThrow({
                 where : {id : parseInt(req.params.id)}
             })
-            if(req.user.id == post.id){
+            if(req.user.id == post.userid){
                 next();
             }
             else {
@@ -88,7 +88,7 @@ postRouter.delete('/:id', passport.authenticate('jwt', {session : false}),
             const post = await prisma.post.findUniqueOrThrow({
                 where : {id : parseInt(req.params.id)}
             })
-            if(req.user.id == post.id){
+            if(req.user.id == post.userid){
                 next();
             }
             else {
