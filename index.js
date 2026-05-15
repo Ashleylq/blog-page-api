@@ -9,7 +9,7 @@ import "dotenv/config"
 const app = express();
 
 app.use(cors({
-    origin : true
+    origin : ["https://blog-creator-page.onrender.com", "https://blog-page-i6lm.onrender.com"]
 }));
 app.use(passport.initialize());
 passportConfig(passport);
